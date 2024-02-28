@@ -15,4 +15,4 @@ def img_trans_1(img: Image.Image) -> Tensor:
     ])(img)
 
 def img_trans_2(img: Image.Image) -> Tensor:
-    return ResNet101_Weights.transforms()
+    return ResNet101_Weights.transforms()(img)
