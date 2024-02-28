@@ -1,0 +1,13 @@
+openimages
+ipykernel
+ipython
+matplotlib
+pandas
+torch
+torchvision
+mypy
+pip
+types-Pillow
+scikit-image
+seaborn
+scikit-learn

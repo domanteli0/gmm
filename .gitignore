@@ -1,1 +1,11 @@
-.direnv
+__pychache__/
+.mypy_cache/
+.venv/
+.dir
+prat/
+pask/
+data/
+others/
+misc/
+.vscode
+playground.ipynb
