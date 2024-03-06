@@ -5,7 +5,7 @@ import os
 data_dir = "data"
 os.makedirs(data_dir, exist_ok=True)
 
-classes = ["Container", "Skyscraper", "Wheelchair", "Helmet"]
+classes = ["Pizza", "Television", "Tiger", "Snowplow"]
 
 def download_if_not_found():
     for (class_dir, _class) in [(Path(f"{data_dir}/{_class.lower()}"), _class) for _class in classes]:
