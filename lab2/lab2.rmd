@@ -1,0 +1,21 @@
+# Lab2
+
+## Užduotis
+
+Antroje užduotyje reikia realizuoti vaizdų klasifikavimo modelį.
+Atsiskaitinėjant pratybų dėstytojas atsiųs testinių vaizdų, su kuriais turėsite pademonstruoti, kaip jūsų realizuotas modelis veikia.
+Atsiskaitymo metu, turėsite gebėti papasakoti, kaip realizuotas, jūsų modelis.
+Programinės įrangos sprendimą galite naudoti savo nuožiūra.
+
+- [ ] Klasės pasirenkamos savo nuožiūra, tačiau jų turi būti bent 3.
+- [ ] Duomenų rinkinys turi būti padalintas į mokymo ir testavimo aibes.
+- [ ] Su testavimo duomenų aibe reikia paskaičiuoti šias metrikas: klasifikavimo matrica (angl. *confusion matrix*), tikslumas, precizija, atkūrimas ir F1.
+
+Duomenų klasėms parinktos iš [OpenImages V6](https://storage.googleapis.com/openimages/web/index.html) objektų aptikimo uždavinio duomenų rinkinio.
+
+## Įgyvendintų papildomų funkcijų papildomi balai $P_2$ pasirinktinai:
+
+- [ ] Palyginimas palyginant aukšto lygio požymius (angl. _similiarity search_)
+- [ ] Sukuriant vartotojo sąsają ir modelio iškvietimą per REST API.
+
+## Užduoties įgyvendinimas
