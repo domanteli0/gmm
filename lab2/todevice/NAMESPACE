@@ -1,0 +1,6 @@
+exportPattern("^[^\\\\.]")
+exportPattern(".")
+export(to_device)
+import(torch)
+S3method(to_device,default)
+

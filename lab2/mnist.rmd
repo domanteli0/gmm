@@ -103,6 +103,7 @@ net <- nn_module(
     x %>% 
       self$conv1() %>%
       nnf_relu() %>%
+
       self$conv2() %>%
       nnf_relu() %>%
       nnf_max_pool2d(2) %>%
@@ -118,7 +119,7 @@ net <- nn_module(
 
 ```{r}
 model <- net()
-model$to(device = DEVICE)
+model <- model$to(device = DEVICE)
 ```
 
 ```{r}

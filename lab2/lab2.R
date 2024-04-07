@@ -1,61 +1,61 @@
-# Lab2
-
-## Užduotis
-
-Antroje užduotyje reikia realizuoti vaizdų klasifikavimo modelį.
-Atsiskaitinėjant pratybų dėstytojas atsiųs testinių vaizdų, su kuriais turėsite pademonstruoti, kaip jūsų realizuotas modelis veikia.
-Atsiskaitymo metu, turėsite gebėti papasakoti, kaip realizuotas, jūsų modelis.
-Programinės įrangos sprendimą galite naudoti savo nuožiūra.
-
-- [ ] Klasės pasirenkamos savo nuožiūra, tačiau jų turi būti bent 3.
-- [ ] Duomenų rinkinys turi būti padalintas į mokymo ir testavimo aibes.
-- [ ] Su testavimo duomenų aibe reikia paskaičiuoti šias metrikas: klasifikavimo matrica (angl. *confusion matrix*), tikslumas, precizija, atkūrimas ir F1.
-
-Duomenų klasėms parinktos iš [OpenImages V6](https://storage.googleapis.com/openimages/web/index.html) objektų aptikimo uždavinio duomenų rinkinio.
-
-## Įgyvendintų papildomų funkcijų papildomi balai $P_2$ pasirinktinai:
-
-- [ ] Palyginimas palyginant aukšto lygio požymius (angl. _similiarity search_)
-- [ ] Sukuriant vartotojo sąsają ir modelio iškvietimą per REST API.
-
-## Užduoties įgyvendinimas
-
-> [!NOTE]
-> Rekomenduoja projektą atidaryti naudojant [RStudio](https://posit.co/products/open-source/rstudio)
-
-### Duomenų atsiuntimas
-
-```{bash}
-brew install awscli
-```
-
-```{bash}
-pipx install oidv6
-```
-```{bash}
-oidv6 downloader --classes Airplane Bus Boat Train --type_data test --no-labels --limit 500 --dest_dir OIDv6/test
-```
-```{bash}
-oidv6 downloader --classes Airplane Bus Boat Train --type_data train --no-labels --limit 200 --dest_dir OIDv6/
-train
-```
-```{bash}
-oidv6 downloader --classes Airplane Bus Boat Train --type_data validation --no-labels --limit 200 --dest_dir OIDv6/
-validation
-```
+# # Lab2
+# 
+# ## Užduotis
+# 
+# Antroje užduotyje reikia realizuoti vaizdų klasifikavimo modelį.
+# Atsiskaitinėjant pratybų dėstytojas atsiųs testinių vaizdų, su kuriais turėsite pademonstruoti, kaip jūsų realizuotas modelis veikia.
+# Atsiskaitymo metu, turėsite gebėti papasakoti, kaip realizuotas, jūsų modelis.
+# Programinės įrangos sprendimą galite naudoti savo nuožiūra.
+# 
+# - [ ] Klasės pasirenkamos savo nuožiūra, tačiau jų turi būti bent 3.
+# - [ ] Duomenų rinkinys turi būti padalintas į mokymo ir testavimo aibes.
+# - [ ] Su testavimo duomenų aibe reikia paskaičiuoti šias metrikas: klasifikavimo matrica (angl. *confusion matrix*), tikslumas, precizija, atkūrimas ir F1.
+# 
+# Duomenų klasėms parinktos iš [OpenImages V6](https://storage.googleapis.com/openimages/web/index.html) objektų aptikimo uždavinio duomenų rinkinio.
+# 
+# ## Įgyvendintų papildomų funkcijų papildomi balai $P_2$ pasirinktinai:
+# 
+# - [ ] Palyginimas palyginant aukšto lygio požymius (angl. _similiarity search_)
+# - [ ] Sukuriant vartotojo sąsają ir modelio iškvietimą per REST API.
+# 
+# ## Užduoties įgyvendinimas
+# 
+# > [!NOTE]
+# > Rekomenduoja projektą atidaryti naudojant [RStudio](https://posit.co/products/open-source/rstudio)
+# 
+# ### Duomenų atsiuntimas
+# 
+# ```{bash}
+# brew install awscli
+# ```
+# 
+# ```{bash}
+# pipx install oidv6
+# ```
+# ```{bash}
+# oidv6 downloader --classes Airplane Bus Boat Train --type_data test --no-labels --limit 500 --dest_dir OIDv6/test
+# ```
+# ```{bash}
+# oidv6 downloader --classes Airplane Bus Boat Train --type_data train --no-labels --limit 200 --dest_dir OIDv6/
+#   train
+# ```
+# ```{bash}
+# oidv6 downloader --classes Airplane Bus Boat Train --type_data validation --no-labels --limit 200 --dest_dir OIDv6/
+#   validation
+# ```
 
 ### Dependencies
 
-```{r, cache=TRUE}
-install.packages("torch")
-install.packages("torchvision")
-install.packages("luz")
-install.packages("coro")
-install.packages('ggplot2')
-install.packages("imager")
-```
 
-```{r, cache=TRUE}
+# install.packages("torch")
+# install.packages("torchvision")
+# install.packages("luz")
+# install.packages("coro")
+# install.packages('ggplot2')
+# install.packages("imager")
+# install.packages("todevice")
+
+
 library(torchvision)
 library(torch)
 library(luz)
@@ -63,28 +63,25 @@ library(coro)
 library(ggplot2)
 library(imager)
 install_torch()
-```
-
+library(todevice)
 
 ### Device
 
-```{r}
 DEVICE = "mps"
 device <- torch_device(DEVICE)
-```
 
 ### Model
 
-```{r}
+
 library(torch)
 
 DIM = 32
-CH = 3
+CHANNELS = 3
 NUM_CLASSES = 4
 
 # Define the neural network architecture
 net <- nn_module(
-    
+  
   initialize = function() {
     self$conv1 = nn_conv2d(in_channels = 3, out_channels = 32, kernel_size = 3, padding = 1)
     self$batchnorm1 = nn_batch_norm2d(num_features = 32)
@@ -132,8 +129,8 @@ net <- nn_module(
       self$batchnorm4() %>%
       self$maxpool2() %>%
       self$dropout2() %>%
-    print(x$shape)
-
+      print(x$shape)
+    
     x <- x %>%
       torch$relu() %>%
       self$conv5() %>%
@@ -143,8 +140,8 @@ net <- nn_module(
       self$batchnorm6() %>%
       self$maxpool3() %>%
       self$dropout3() %>%
-    print(x$shape)
-
+      print(x$shape)
+    
     x <- x %>%
       self$flatten() %>%
       self$fc1() %>%
@@ -159,11 +156,10 @@ net <- nn_module(
 
 model <- net()
 model <- model$to(device = DEVICE)
-```
 
 ### Displaying an image
 
-```{r}
+
 library(imager)
 display <- function(image) {
   # im <- load.image("myimage")
@@ -175,11 +171,10 @@ display <- function(image) {
     purrr::map(as.raster) %>%
     purrr::iwalk(~{plot(.x)})
 }
-```
+
 
 ### Transformacijos
 
-```{r}
 library(torchvision)
 
 # Define data transformations using 'torchvision' package
@@ -202,20 +197,12 @@ validation_trans <- function(img) {
 }
 
 test_trans <- function(img) {
-  as_array(img) %>%
-    purrr::array_tree(1) %>%
-    purrr::map(as.raster) %>%
-    purrr::iwalk(~{plot(.x)})
-  
-  img %>%
-    torchvision::transform_to_tensor() %>%
+  img <- torchvision::transform_to_tensor(img)
+  img <- img %>%
+    torchvision::transform_grayscale(num_output_channels = 3) %>%
     torchvision::transform_resize(c(32, 32))
 }
-```
 
-### Data loading & DataSets
-
-```{r}
 library(torchvision)
 train_ds <- image_folder_dataset(
   file.path("OIDv6", "train"),
@@ -235,16 +222,6 @@ validation_ds <- image_folder_dataset(
 train_dl      <- dataloader(train_ds,      batch_size = 32, shuffle = TRUE,  num_workers = 2)
 test_dl       <- dataloader(test_ds,       batch_size = 32, shuffle = FALSE, num_workers = 2)
 validation_dl <- dataloader(validation_ds, batch_size = 32, shuffle = FALSE, num_workers = 2)
-```
-
-### Training
-
-> ```{r}
-> test_dl$.length()
-> ```
-
-
-```{r}
 
 # Define loss function, optimizer, and device
 criterion <- nn_cross_entropy_loss()
@@ -261,28 +238,29 @@ for (epoch in 1:num_epochs) {
   train_corrects <- 0
   
   # Iterate over training dataset
-  coro::loop(for (batch in test_dl) {
-#    inputs <- batch[[1]]$to(device)
-#    labels <- batch[[2]]$to(device)
-#    
-#    # Zero the gradients
-#    optimizer$zero_grad()
-#    
-#    # Forward pass
-#    outputs <- model(inputs)
-#    
-#    # Calculate loss
-#    loss <- criterion(outputs, labels)
-#    
-#    # Backward pass and optimization
-#    loss$backward()
-#    optimizer$step()
-#    
-#    # Track training loss
-#    train_loss_values <- c(train_loss_values, as.numeric(loss$cpu()$detach()))
-#    
-#    # Calculate number of correct predictions
-#    train_corrects <- train_corrects + sum(outputs$argmax(1) == labels)
+  coro::loop(
+    for (batch in test_dl) {
+    #    inputs <- batch[[1]]$to(device)
+    #    labels <- batch[[2]]$to(device)
+    #    
+    #    # Zero the gradients
+    #    optimizer$zero_grad()
+    #    
+    #    # Forward pass
+    #    outputs <- model(inputs)
+    #    
+    #    # Calculate loss
+    #    loss <- criterion(outputs, labels)
+    #    
+    #    # Backward pass and optimization
+    #    loss$backward()
+    #    optimizer$step()
+    #    
+    #    # Track training loss
+    #    train_loss_values <- c(train_loss_values, as.numeric(loss$cpu()$detach()))
+    #    
+    #    # Calculate number of correct predictions
+    #    train_corrects <- train_corrects + sum(outputs$argmax(1) == labels)
   })
   
   # Calculate training accuracy
@@ -321,8 +299,3 @@ for (epoch in 1:num_epochs) {
   # Print validation loss and accuracy
   cat(sprintf("Epoch [%d/%d]: Val Loss: %.4f, Val Acc: %.4f\n", epoch, num_epochs, mean(val_loss_values), val_acc))
 }
-```
-
-
-
-

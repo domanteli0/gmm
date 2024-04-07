@@ -2,26 +2,22 @@
 
 ## Užduotis
 
-Antroje užduotyje reikia realizuoti vaizdų klasifikavimo modelį.
-Atsiskaitinėjant pratybų dėstytojas atsiųs testinių vaizdų, su kuriais turėsite pademonstruoti, kaip jūsų realizuotas modelis veikia.
-Atsiskaitymo metu, turėsite gebėti papasakoti, kaip realizuotas, jūsų modelis.
-Programinės įrangos sprendimą galite naudoti savo nuožiūra.
+Antroje užduotyje reikia realizuoti vaizdų klasifikavimo modelį. Atsiskaitinėjant pratybų dėstytojas atsiųs testinių vaizdų, su kuriais turėsite pademonstruoti, kaip jūsų realizuotas modelis veikia. Atsiskaitymo metu, turėsite gebėti papasakoti, kaip realizuotas, jūsų modelis. Programinės įrangos sprendimą galite naudoti savo nuožiūra.
 
-- [ ] Klasės pasirenkamos savo nuožiūra, tačiau jų turi būti bent 3.
-- [ ] Duomenų rinkinys turi būti padalintas į mokymo ir testavimo aibes.
-- [ ] Su testavimo duomenų aibe reikia paskaičiuoti šias metrikas: klasifikavimo matrica (angl. *confusion matrix*), tikslumas, precizija, atkūrimas ir F1.
+-   [ ] Klasės pasirenkamos savo nuožiūra, tačiau jų turi būti bent 3.
+-   [ ] Duomenų rinkinys turi būti padalintas į mokymo ir testavimo aibes.
+-   [ ] Su testavimo duomenų aibe reikia paskaičiuoti šias metrikas: klasifikavimo matrica (angl. *confusion matrix*), tikslumas, precizija, atkūrimas ir F1.
 
 Duomenų klasėms parinktos iš [OpenImages V6](https://storage.googleapis.com/openimages/web/index.html) objektų aptikimo uždavinio duomenų rinkinio.
 
 ## Įgyvendintų papildomų funkcijų papildomi balai $P_2$ pasirinktinai:
 
-- [ ] Palyginimas palyginant aukšto lygio požymius (angl. _similiarity search_)
-- [ ] Sukuriant vartotojo sąsają ir modelio iškvietimą per REST API.
+-   [ ] Palyginimas palyginant aukšto lygio požymius (angl. *similiarity search*)
+-   [ ] Sukuriant vartotojo sąsają ir modelio iškvietimą per REST API.
 
 ## Užduoties įgyvendinimas
 
-> [!NOTE]
-> Rekomenduoja projektą atidaryti naudojant [RStudio](https://posit.co/products/open-source/rstudio)
+> \[!NOTE\] Rekomenduoja projektą atidaryti naudojant [RStudio](https://posit.co/products/open-source/rstudio)
 
 ### Duomenų atsiuntimas
 
@@ -32,13 +28,16 @@ brew install awscli
 ```{bash}
 pipx install oidv6
 ```
+
 ```{bash}
 oidv6 downloader --classes Airplane Bus Boat Train --type_data test --no-labels --limit 500 --dest_dir OIDv6/test
 ```
+
 ```{bash}
 oidv6 downloader --classes Airplane Bus Boat Train --type_data train --no-labels --limit 200 --dest_dir OIDv6/
 train
 ```
+
 ```{bash}
 oidv6 downloader --classes Airplane Bus Boat Train --type_data validation --no-labels --limit 200 --dest_dir OIDv6/
 validation
@@ -47,12 +46,11 @@ validation
 ### Dependencies
 
 ```{r, cache=TRUE}
-install.packages("torch")
-install.packages("torchvision")
-install.packages("luz")
-install.packages("coro")
-install.packages('ggplot2')
-install.packages("imager")
+# install.packages("torch")
+# install.packages("torchvision")
+# install.packages("luz")
+# install.packages("coro")
+# install.packages('ggplot2')
 ```
 
 ```{r, cache=TRUE}
@@ -64,7 +62,6 @@ library(ggplot2)
 library(imager)
 install_torch()
 ```
-
 
 ### Device
 
@@ -218,7 +215,7 @@ test_trans <- function(img) {
 ```{r}
 library(torchvision)
 train_ds <- image_folder_dataset(
-  file.path("OIDv6", "train"),
+  file.path("./OIDv6", "train"),
   transform = train_trans
 )
 
@@ -242,7 +239,6 @@ validation_dl <- dataloader(validation_ds, batch_size = 32, shuffle = FALSE, num
 > ```{r}
 > test_dl$.length()
 > ```
-
 
 ```{r}
 
@@ -322,7 +318,3 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("Epoch [%d/%d]: Val Loss: %.4f, Val Acc: %.4f\n", epoch, num_epochs, mean(val_loss_values), val_acc))
 }
 ```
-
-
-
-
