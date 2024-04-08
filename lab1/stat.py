@@ -13,8 +13,8 @@ def table(truths, predictions, threshold = .5, labels = [1]):
 def stats(stats):
     tp, tn, fp, fn = stats
 
-    accuracy = (tp + tn) / (tp + tn + fp + fn)
-    recall = (tp) / (tp + fn)
-    precision = (tp) / (tp + fp)
+    accuracy  = (tp + tn) / (tp + tn + fp + fn)
+    recall    = (tp) / (tp + fn) # = 1 - fn/(tp+fn)
+    precision = (tp) / (tp + fp) # = 1 - fp/(tp+fp)
     f1 = 2 * (precision * recall) / (precision + recall)
     return accuracy, recall, precision, f1

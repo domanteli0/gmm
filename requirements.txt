@@ -11,3 +11,4 @@ types-Pillow
 scikit-image
 seaborn
 scikit-learn
+scipy

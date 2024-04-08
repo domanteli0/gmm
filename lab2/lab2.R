@@ -200,6 +200,12 @@ test_trans <- function(img) {
   img <- torchvision::transform_to_tensor(img)
   img <- img %>%
     torchvision::transform_grayscale(num_output_channels = 3) %>%
+    (function (img) {
+      img = img.convert("L")
+      np_img = np.array(img, dtype=np.uint8)
+      np_img = np.dstack([np_img, np_img, np_img])
+      img = Image.fromarray(np_img, "RGB") 
+    }) %>%
     torchvision::transform_resize(c(32, 32))
 }
 
