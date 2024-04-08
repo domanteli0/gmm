@@ -1,13 +1,14 @@
 from bokeh.plotting import figure, curdoc
-from bokeh.models import FileInput
-from bokeh.layouts import column
+from bokeh.models import FileInput, Paragraph
+from bokeh.layouts import column, row, layout
+from bokeh.client import push_session
 import numpy as np
 
 import torch
 
 from PIL import Image
 
-from lab2.model1 import Model
+from lab2.model2 import Model
 def load_model(path = "model2_attempt4.pth"):
     model = Model()
     model.load_state_dict(torch.load(path))
@@ -22,66 +23,36 @@ def to_pil_image(image_as_base64_str):
     image = Image.open(image_buffer)
     return image
 
-from lab2.trans1 import test_trans
+from lab2.trans2 import test_trans
 def preprocess_image(image_as_base64_str):
     image = to_pil_image(image_as_base64_str).convert('RGB')
     image = test_trans(image)
     return image.unsqueeze(0)
 
-# from random import random
-
-# from bokeh.models import Button
-# from bokeh.palettes import RdYlBu3
-
-# # create a plot and style its properties
-# p = figure(x_range=(0, 100), y_range=(0, 100), toolbar_location=None)
-# p.border_fill_color = 'black'
-# p.background_fill_color = 'black'
-# p.outline_line_color = None
-# p.grid.grid_line_color = None
-
-# # add a text renderer to the plot (no data yet)
-# r = p.text(x=[], y=[], text=[], text_color=[], text_font_size="26px",
-#            text_baseline="middle", text_align="center")
-
-# i = 0
-
-# ds = r.data_source
-
-# # create a callback that adds a number in a random location
-# def callback():
-#     global i
-
-#     # BEST PRACTICE --- update .data in one step with a new dict
-#     new_data = dict()
-#     new_data['x'] = ds.data['x'] + [random()*70 + 15]
-#     new_data['y'] = ds.data['y'] + [random()*70 + 15]
-#     new_data['text_color'] = ds.data['text_color'] + [RdYlBu3[i%3]]
-#     new_data['text'] = ds.data['text'] + [str(i)]
-#     ds.data = new_data
-
-#     i = i + 1
-
-# # add a button widget and configure with the call back
-# button = Button(label="Press Me")
-# button.on_event('button_click', callback)
-
 model = load_model()
 class_names = [ "airplane", "boat", "bus", "train" ]
 
-placeholder_img = Image.open('lab2/transparent.jpeg')
-fig = figure(x_range=(0, 1), y_range=(0, 1))
-fig.image_rgba(image=[np.array(placeholder_img)])
+fig = figure()
 
-# upload_button = figure(x_range = (1, 2), y_range = (1, 2))
+prediction_p = Paragraph(text = "Upload an image", width=250)
 
 def user_image(attr, o, new):
+    global prediction_p
+    global fig
     confidence, label = model(preprocess_image(new)).softmax(dim = 1).max(dim = 1)
-    print(f"  conf  {confidence[0]}")
-    print(f"  label {class_names[label[0]]}")
+    confidence = confidence[0]
+    class_name = class_names[label[0]]
+    text = f"Prediction: {class_name} [Confidence: {confidence * 100:.1f}%]"
+    print(text)
+
+    prediction_p.text = text
+    fig.image_rgba(image=[np.array(to_pil_image(new))])
 
 image_path = FileInput(accept = '.jpg')
 image_path.on_change('value', user_image)
 
 # put the button and plot in a layout and add to the document
-curdoc().add_root(column(image_path, fig))
+curdoc().add_root(layout([[column([image_path, prediction_p]), fig]]))
+# session = push_session(curdoc())
+# session.show()
+
