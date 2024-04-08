@@ -11,3 +11,5 @@ misc/
 .vscode
 playground.ipynb
 .Rproj.user
+__pycache__
+lab2_ui.html
