@@ -8,8 +8,8 @@ import torch
 
 from PIL import Image
 
-from lab2.model1 import Model
-def load_model(path = "model2_attempt5.pth"):
+from lab2.model3 import Model
+def load_model(path = "model3_attempt7.pth"):
     model = Model()
     model.load_state_dict(torch.load(path))
     model.eval()
@@ -23,7 +23,7 @@ def to_pil_image(image_as_base64_str):
     image = Image.open(image_buffer)
     return image
 
-from lab2.trans1 import test_trans
+from lab2.trans3 import test_trans
 def preprocess_image(image_as_base64_str):
     image = to_pil_image(image_as_base64_str).convert('RGB')
     image = test_trans(image)
