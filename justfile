@@ -7,3 +7,6 @@ source-fish:
 
 start-lab2:
     bokeh serve --show lab2_ui.py
+
+serve-lab3:
+    python lab3_service.py

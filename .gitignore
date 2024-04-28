@@ -1,11 +1,10 @@
 __pychache__/
-lab1/__pycache__/
 .mypy_cache/
 .venv/
 .dir
 prat/
 pask/
-data/
+data*/
 others/
 misc/
 .vscode
@@ -14,4 +13,5 @@ playground.ipynb
 __pycache__
 lab2_ui.html
 mini1.pth
-data-cifar/
+outputs
+uploads
