@@ -18,3 +18,5 @@ datasets[vision]
 transformers
 fiftyone
 flask
+albumentations
+xarray

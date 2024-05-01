@@ -8,7 +8,6 @@ See `lab2` folder and `lab2.ipynb` for model implementation details.
 
 ### TODO
 
-- [ ] calculate & graph statistics
+- [ ] fix dice & Iou
 - [ ] print in service
 - [ ] change the model???
-- [ ] fix image & mask rendering

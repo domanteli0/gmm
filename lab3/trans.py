@@ -1,4 +1,4 @@
-import torchvision.transforms as trans
+import torchvision.transforms.v2 as trans
 
 train_trans = trans.Compose([
   trans.Resize((128, 128)),
