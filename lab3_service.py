@@ -6,22 +6,24 @@ import cv2
 import numpy as np
 from PIL import Image
 import torch
-from lab3.show import mask_to_rgb_image
 from lab3.classes import classes
 from lab1.device import device
+from lab3.show import mask_to_rgb_image
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'outputs'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-DIM=128
+DIM = 128
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
-from lab3.net import Net
-def load_model(path = "lab3/model_attempt1.pth"):
+from lab3.net1 import Net
+from lab3.trans1 import test_trans as trans
+
+def load_model(path = "lab3/net1_attempt1.pth"):
     model = torch.load(path)
     model.eval()
     return model
@@ -64,8 +66,6 @@ def render_mask(mask):
             if mask[y, x] == 1:
                 pixels[x, y] = mask_color
     return image
-
-from lab3.trans import test_trans as trans
 
 def process_image(input_path, output_folder):
     img = trans(Image.open(input_path).convert('RGB')).unsqueeze(0).to(device)
