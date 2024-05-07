@@ -20,11 +20,13 @@ DIM = 128
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
-from lab3.net1 import Net
-from lab3.trans1 import test_trans as trans
+from lab3.net import Net
+from lab3.trans import test_trans as trans
 
-def load_model(path = "lab3/net1_attempt1.pth"):
+def load_model(path = "lab3/net_attempt2.pth"):
     model = torch.load(path)
+    print(f"TYPE {type(model)}")
+
     model.eval()
     return model
 model = load_model()

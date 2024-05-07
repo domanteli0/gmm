@@ -5,12 +5,14 @@ import fiftyone.core.dataset as fod
 import fiftyone.core.sample as fos
 import fiftyone.utils.openimages as fouo
 import torch
-import torchvision.transforms as trans
+import torchvision.transforms.v2 as trans
 import numpy as np
 from PIL import Image
 import cv2
 
+import lab3.util as lu
 import lab3.classes as cs
+import lab3.trans as lt
 
 class FiftyOneDataset(torch.utils.data.Dataset):
   def __init__(self, importer: fouo.OpenImagesV6DatasetImporter, transforms):
@@ -26,11 +28,15 @@ class FiftyOneDataset(torch.utils.data.Dataset):
     mask = self.masks[idx]
 
     img  = Image.open(img).convert('RGB')
+
+    print(f"{mask.shape}")
+    # mask = lt.to_tensor(mask)
     mask = trans.functional.to_tensor(mask)
+    print(f"{mask.shape}")
 
     img, mask = self.transform(img, mask)
 
-    return img, mask
+    return img, lu.normalize_masks(mask)
 
 def resize_mask(mask, bbox, target_size = (128, 128)):
   x_start = int(bbox[0] * target_size[1])
