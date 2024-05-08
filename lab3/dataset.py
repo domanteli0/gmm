@@ -14,6 +14,8 @@ import lab3.util as lu
 import lab3.classes as cs
 import lab3.trans as lt
 
+DIM = 128
+
 class FiftyOneDataset(torch.utils.data.Dataset):
   def __init__(self, importer: fouo.OpenImagesV6DatasetImporter, transforms):
     self.transform = transforms
@@ -24,30 +26,37 @@ class FiftyOneDataset(torch.utils.data.Dataset):
     return len(self.img_paths)
 
   def __getitem__(self, idx):
-    img  = self.img_paths[idx]
+    img = self.img_paths[idx]
     mask = self.masks[idx]
 
-    img  = Image.open(img).convert('RGB')
+    img = Image.open(img).convert('RGB')
 
-    print(f"{mask.shape}")
+    # print(f"{mask.shape}")
     # mask = lt.to_tensor(mask)
     mask = trans.functional.to_tensor(mask)
-    print(f"{mask.shape}")
+
+    mask = (mask != .0).float()
+
+    # print(f"SHAPE: {mask.shape}")
+    # print(f"TYPE:  {mask.dtype}")
+    # print(f"MAX:   {mask.max()}")
 
     img, mask = self.transform(img, mask)
 
-    return img, lu.normalize_masks(mask)
+    return img, mask
 
-def resize_mask(mask, bbox, target_size = (128, 128)):
+
+def resize_mask(mask, bbox, target_size=(128, 128)):
   x_start = int(bbox[0] * target_size[1])
   y_start = int(bbox[1] * target_size[0])
   x_end = int((bbox[0] + bbox[2]) * target_size[1])
   y_end = int((bbox[1] + bbox[3]) * target_size[0])
 
-  return cv2.resize(mask, (x_end - x_start, y_end - y_start), interpolation = cv2.INTER_LINEAR), x_start, y_start
+  return cv2.resize(mask, (x_end - x_start, y_end - y_start), interpolation=cv2.INTER_LINEAR), x_start, y_start
+
 
 def aggregate_detections(segmentations: Detections, target_size: tuple[int, int] = (128, 128)):
-  aggr_mask = np.zeros((*target_size, cs.num_classes), dtype = np.uint8)
+  aggr_mask = np.zeros((*target_size, cs.num_classes), dtype=np.uint8)
   aggr_mask[..., cs.classes_dict["Background"]] = 1
 
   seg: Detection

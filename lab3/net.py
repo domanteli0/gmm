@@ -43,9 +43,9 @@ class Net(torch.nn.Module):
 
     # Output Layer
     self.conv8 = torch.nn.Conv2d(32, num_classes, (1, 1))  # Adjust number of output channels
-    # self.softmax = torch.nn.Softmax(dim=1)  # Use Softmax across channel dimension
+    self.softmax = torch.nn.Softmax()  # Use Softmax across channel dimension
     # self.conv8 = torch.nn.Conv2d(16, 1, (1, 1))
-    self.sigmoid8 = torch.nn.Sigmoid()
+    # self.sigmoid8 = torch.nn.Sigmoid()
 
   def forward(self, x):
     # Contracting Path
@@ -79,5 +79,5 @@ class Net(torch.nn.Module):
     c7 = self.conv7(merge7)
 
     c8 = self.conv8(c7)
-    out = self.sigmoid8(c8)
+    out = self.softmax(c8)
     return out
