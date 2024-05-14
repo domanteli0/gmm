@@ -1,6 +1,7 @@
 __pychache__/
 .mypy_cache/
 .venv/
+venv
 .dir
 prat/
 pask/

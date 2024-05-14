@@ -20,3 +20,5 @@ fiftyone
 flask
 albumentations
 xarray
+shutil
+pycocotools
