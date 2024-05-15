@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+import pickle as p
 from torch import tensor as t
 
 def seconds_to_time(seconds):
@@ -33,3 +35,39 @@ def seconds_to_time(seconds):
 #   t2 = vals.repeat_interleave(DIM * DIM).view((CLASS_NO, DIM, DIM))
 #   return t2 * masks
 
+def pickle_data(dataset, filepath, classes):
+  ix = 1
+  set = []
+  # TODO merge objects, since apparently this is object segmentation
+  for i, q, seg in dataset:
+    if not hasattr(seg, 'detections'):
+      continue
+
+    ix += 1
+
+    img = i.split('/')[-1]
+
+    segmentations = {
+      "image": img,
+      "segmentations": []
+    }
+
+    for s in seg.detections:
+      if s.label not in classes:
+        continue
+
+      bbox = s.bounding_box
+      mask = s.mask.astype(np.uint8)
+      if s.mask.max() != 0:
+        seg = {
+          "label": s.label,
+          "bbox": bbox,
+          "mask": mask
+        }
+        segmentations['segmentations'].append(seg)
+    set.append(segmentations)
+
+  with open(filepath, 'wb') as file:
+    p.dump(set, file)
+
+  print(f"done: {ix}")

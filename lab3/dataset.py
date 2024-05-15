@@ -41,7 +41,7 @@ class FiftyOneDataset(torch.utils.data.Dataset):
     # print(f"TYPE:  {mask.dtype}")
     # print(f"MAX:   {mask.max()}")
 
-    img, mask = self.transform(img, mask)
+    img, self.transform(img)
 
     return img, mask
 
