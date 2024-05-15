@@ -8,18 +8,18 @@ to_tensor = trans.Compose([
 ])
 
 train_trans = trans.Compose([
+  trans.Resize((128, 128)),
   trans.RandomHorizontalFlip(),
   trans.RandomRotation(20),
-  trans.ColorJitter(brightness = 0.4, contrast = 0.2, saturation = 0.2, hue=0.1),
-  trans.RandomGrayscale(p=0.1),
-  trans.RandomResizedCrop(size = (128, 128), scale = (0.75, 0.75)),
-  to_tensor,
+  trans.ColorJitter(brightness = 0.4, contrast = 0.2, saturation = 0.2, hue = 0.1),
+  trans.RandomGrayscale(p = 0.1),
+  # to_tensor,
   trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
 validation_trans = trans.Compose([
   trans.Resize((128, 128)),
-  to_tensor,
+  # to_tensor,
   trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
