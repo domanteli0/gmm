@@ -9,6 +9,8 @@ import torchvision.transforms.v2 as trans
 import numpy as np
 from PIL import Image
 import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 import lab3.util as lu
 import lab3.classes as cs
@@ -61,7 +63,7 @@ def aggregate_detections(segmentations: Detections, target_size: tuple[int, int]
 
   seg: Detection
   for seg in segmentations.detections:
-    # print(f"SEG: {seg}")
+    print(f"SEG: {seg}")
 
     if seg.label not in cs.classes_dict.keys():
       continue

@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import pickle as p
 from torch import tensor as t
+import itertools
 
 def seconds_to_time(seconds):
   s = int(seconds) % 60
@@ -38,36 +39,105 @@ def seconds_to_time(seconds):
 def pickle_data(dataset, filepath, classes):
   ix = 1
   set = []
-  # TODO merge objects, since apparently this is object segmentation
   for i, q, seg in dataset:
     if not hasattr(seg, 'detections'):
       continue
-
     ix += 1
 
     img = i.split('/')[-1]
-
     segmentations = {
       "image": img,
       "segmentations": []
     }
 
-    for s in seg.detections:
-      if s.label not in classes:
+    # Sorting the data by label
+    seg.detections.sort(key=lambda x: x.label)
+    for label, segs in itertools.groupby(seg.detections, key=lambda d: d.label):
+      if label not in classes:
         continue
 
-      bbox = s.bounding_box
-      mask = s.mask.astype(np.uint8)
-      if s.mask.max() != 0:
+      print(list(segs))
+      print(label)
+
+      masks  = [s['mask'] for s in segs]
+      bboxes = [s['bounding_box'] for s in segs]
+
+      mask, bbox = big_mask_from_many_smol_masks(masks, bboxes)
+
+      if mask.max() != 0:
         seg = {
-          "label": s.label,
+          "label": label,
           "bbox": bbox,
           "mask": mask
         }
         segmentations['segmentations'].append(seg)
+
     set.append(segmentations)
 
   with open(filepath, 'wb') as file:
     p.dump(set, file)
 
   print(f"done: {ix}")
+
+def bix_bbox_from_smol_bboxes(bboxes):
+  """
+  arg and return bbox format:
+
+  (x1, y1, x2, y2), where
+
+  x1, y1 - top-right corner
+
+  x2 - distance from x1 to the right
+
+  y2 - distance from y1 to the bottom
+  """
+  min_x, min_y = 0, 0
+  max_x, max_y = 0, 0
+
+  for bbox in bboxes:
+    x1, y1, x2, y2 = bbox
+    x2 = x1 + x2
+    y2 = y1 + y2
+
+    min_x = min(min_x, x1)
+    min_y = min(min_y, y1)
+    max_x = max(max_x, x2)
+    max_y = max(max_y, y2)
+
+  return min_x, min_y, max_x - min_x, max_y - min_y
+
+# masks = [ np.array([[1,1], [1,1]]), np.array([[0,0], [0,1]]) ]
+# bboxes = [(1,1,2,2), (2,2,2,2)]
+
+def big_mask_from_many_smol_masks(masks, bboxes):
+  """
+  arg and return bbox format:
+
+  (x1, y1, x2, y2), where
+
+  x1, y1 - top-right corner
+
+  x2 - distance from x1 to the right
+
+  y2 - distance from y1 to the bottom
+  """
+  new_bbox = bix_bbox_from_smol_bboxes(bboxes)
+  min_x, min_y, max_x, max_y = new_bbox
+  mask = np.zeros((min_x + max_x, min_y +  max_y))
+  # mask = np.zeros((max_y + 1, max_y + 1))
+
+  for small_mask, bbox in zip(masks, bboxes):
+    x1, y1, x2, y2 = bbox
+    x2, y2 = x2+x1, y2+y1
+    mask[y1:y2, x1:x2] += small_mask
+
+  return mask, new_bbox
+
+def pad_mask(mask, orig_bbox, new_dim):
+  zeros = np.zeros(new_dim[0], new_dim[1])
+  new_bbox = (0, 0, new_dim[0], new_dim[1])
+
+  return big_mask_from_many_smol_masks(
+    masks  = [zeros, mask],
+    bboxes = [new_bbox, orig_bbox],
+  )
