@@ -13,11 +13,8 @@ seaborn
 scikit-learn
 scipy
 bokeh
-datasets
-datasets[vision]
 transformers
 fiftyone
 flask
 albumentations
 xarray
-itertools

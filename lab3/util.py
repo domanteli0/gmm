@@ -1,9 +1,12 @@
+from typing import List
+
 import torch
 import numpy as np
 import pickle as p
 import itertools
 from PIL import Image
 import cv2
+
 
 def seconds_to_time(seconds):
   s = int(seconds) % 60
@@ -15,6 +18,7 @@ def seconds_to_time(seconds):
   if h < 1:
     return f'{m}m{s}s'
   return f'{h}h{m}m{s}s'
+
 
 # # Normalizes masks PER singular sample
 # def normalize_masks_in_a_batch(mask_batch: torch.Tensor) -> torch.Tensor:
@@ -52,50 +56,33 @@ def pickle_data(dataset, filepath, classes):
     }
 
     img = Image.open(i).convert('RGB')
-    print(i)
     img_x, img_y = img.size
 
     # Sorting the data by label
     seg.detections.sort(key=lambda x: x.label)
-    print(list(itertools.groupby(seg.detections, key=lambda d: d.label)))
     for label, segs in itertools.groupby(seg.detections, key=lambda d: d.label):
       segs = list(segs)
       if label not in classes:
         continue
 
-      for seg in segs:
-        print(type(seg))
-        print(type(seg.mask))
-
-      # def fun(mask, bbox):
-      #   zero = np.zeros(img.size)
-      #   mask = resize_mask(mask, bbox, img.size)
-      #   mask =
-
-
-      masks  = [s.mask.astype(int) for s in segs]
+      masks = [s.mask.astype(int) for s in segs]
       bboxes = [to_target_shape(s.bounding_box, img.size) for s in segs]
 
       # https://stackoverflow.com/a/64617349
       # mask = np.zeros((height, width))
-      print(img_x, img_y)
+      # TODO: rename
       zero_mask = np.zeros((img_y, img_x), dtype=int)
-      print(zero_mask)
       for mask, bbox in zip(masks, bboxes):
-        print(bbox, img.size)
         mask = resize_mask(mask, bbox)
-        print(bbox, img.size)
         x1, y1, x2, y2 = bbox
         x2 += x1
         y2 += y1
 
         zero_mask[y1:y2, x1:x2] = mask
 
-      print(zero_mask.shape)
-      if mask.max() != 0:
+      if zero_mask.max() != 0:
         seg = {
           "label": label,
-          "bbox": bbox,
           "mask": zero_mask
         }
         segmentations['segmentations'].append(seg)
@@ -111,8 +98,9 @@ def pickle_data(dataset, filepath, classes):
 def resize_mask(mask, bounding_box):
   _, _, x2, y2 = bounding_box
   return cv2.resize(mask,
-                    dsize = (x2, y2),
-                    interpolation = cv2.INTER_NEAREST)
+                    dsize=(x2, y2),
+                    interpolation=cv2.INTER_NEAREST)
+
 
 def to_target_shape(bbox, target_shape):
   bbox[0] *= target_shape[0]
@@ -122,9 +110,11 @@ def to_target_shape(bbox, target_shape):
 
   return int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
 
+
 def unpickle_data(filepath):
-  with open(filepath, 'wb') as file:
-    return p.load(set, file)
+  with open(filepath, 'rb') as file:
+    return p.load(file)
+
 
 def bix_bbox_from_smol_bboxes(bboxes):
   """
@@ -152,6 +142,7 @@ def bix_bbox_from_smol_bboxes(bboxes):
     max_y = max(max_y, y2)
 
   return min_x, min_y, max_x - min_x, max_y - min_y
+
 
 # masks = [ np.array([[1,1], [1,1]]), np.array([[0,0], [0,1]]) ]
 # bboxes = [(1,1,2,2), (2,2,2,2)]
@@ -184,6 +175,7 @@ def big_mask_from_many_smol_masks(masks, start_pos):
 
   return mask, new_bbox
 
+
 def zero_mask_from_smol_masks(masks):
   x, y = 0, 0
   for m in masks:
@@ -192,6 +184,7 @@ def zero_mask_from_smol_masks(masks):
 
   return np.zeros((x, y))
 
+
 def pad_mask(mask_, bbox, img_size):
   padded = np.zeros((img_size[1], img_size[0]))
 
@@ -199,3 +192,7 @@ def pad_mask(mask_, bbox, img_size):
 
   padded[y1:y2, x1:x2] += mask_
   padded = ((padded >= 1) * 255.0).astype(int)
+
+
+def unzipListIntoList(xs: List):
+  return list(zip(*xs))

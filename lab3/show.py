@@ -63,3 +63,12 @@ def mask_to_rgb_image(mask, classes):
   
   return rgb_image
 
+def display_img_with_masks_nouveau(img, masks, classes):
+  fig, axes = plt.subplots(1, 6, figsize=(15, 15))
+  for i in range(len(classes)):
+    axes[i].imshow(masks[i], cmap='gray')
+    axes[i].set_title(classes[i])
+    axes[i].axis('off')
+  plt.show()
+  plt.imshow(img.permute(1, 2, 0).numpy())
+
