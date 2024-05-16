@@ -1,15 +1,9 @@
 from typing import Iterable, cast
-from fiftyone.core.labels import Detections
-from fiftyone.core.labels import Detection
-import fiftyone.core.dataset as fod
-import fiftyone.core.sample as fos
-import fiftyone.utils.openimages as fouo
 import torch
 import torchvision.transforms.v2 as trans
-import numpy as np
 from PIL import Image
 import cv2
-import numpy as np
+import torch as np
 import matplotlib.pyplot as plt
 
 import lab3.util as lu
@@ -19,33 +13,24 @@ import lab3.trans as lt
 DIM = 128
 
 class FiftyOneDataset(torch.utils.data.Dataset):
-  def __init__(self, importer: fouo.OpenImagesV6DatasetImporter, transforms):
+  def __init__(self, filepath, transforms):
+    super(FiftyOneDataset).__init__()
+
+    data = lu.unpickle_data(filepath)
+
     self.transform = transforms
-    self.img_paths = [filepath for filepath, _, s in importer if s is not None]
-    self.masks = [aggregate_detections(segs) for _, _, segs in importer if segs is not None]
+    # self.img_paths = [s['image'] for s in set]
+    # self.masks = [s['segmentations'] for s in set]
+    self.data = data
 
   def __len__(self):
     return len(self.img_paths)
 
   def __getitem__(self, idx):
-    img = self.img_paths[idx]
-    mask = self.masks[idx]
 
-    img = Image.open(img).convert('RGB')
+    self.data[idx]['image'] = Image.open(self.data[idx]['image']).convert('RGB')
 
-    # print(f"{mask.shape}")
-    # mask = lt.to_tensor(mask)
-    mask = trans.functional.to_tensor(mask)
-
-    mask = (mask != .0).float()
-
-    # print(f"SHAPE: {mask.shape}")
-    # print(f"TYPE:  {mask.dtype}")
-    # print(f"MAX:   {mask.max()}")
-
-    img, self.transform(img)
-
-    return img, mask
+    return self.data[idx]['image'], self.data[idx]['segmentations']
 
 
 def resize_mask(mask, bbox, target_size=(128, 128)):

@@ -1,7 +1,6 @@
 import torch
-import numpy as np
+import torch as np
 import pickle as p
-from torch import tensor as t
 import itertools
 
 def seconds_to_time(seconds):
@@ -78,6 +77,10 @@ def pickle_data(dataset, filepath, classes):
     p.dump(set, file)
 
   print(f"done: {ix}")
+
+def unpickle_data(filepath):
+  with open(filepath, 'wb') as file:
+    return p.load(set, file)
 
 def bix_bbox_from_smol_bboxes(bboxes):
   """
