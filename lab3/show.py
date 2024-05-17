@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from lab3.net import DIM
 
 def display_img_with_masks(ax, img, masks):
   # TODO:
@@ -12,7 +13,7 @@ def display_img_with_masks(ax, img, masks):
     mask = masks[ix,:,:].numpy()
   
     if np.max(mask) == 0:
-      mask = np.zeros((128, 128))
+      mask = np.zeros((DIM, DIM))
     else:
       mask = mask / np.max(mask)
 
@@ -24,7 +25,7 @@ def display_masks(ax, masks):
     mask = masks[ix,:,:].numpy()
 
     if np.max(mask) == 0:
-      mask = np.zeros((128, 128))
+      mask = np.zeros((DIM, DIM))
     else:
       mask = mask / np.max(mask)
 

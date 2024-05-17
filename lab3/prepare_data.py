@@ -1,10 +1,13 @@
 import os
+
+import cv2
 import fiftyone.utils.openimages as fouo
 import fiftyone.zoo as foz
 import classes as cs
 from util import pickle_data
 from PIL import Image
 from distutils.dir_util import copy_tree
+import numpy as np
 
 def download(split="train", max_samples: int = 2000):
   return foz.load_zoo_dataset(
@@ -58,20 +61,25 @@ def resize_dataset(input_folder, output_folder):
       print("SKIPPED")
       continue
 
-    with Image.open(img_path) as img:
+    with Image.open(img_path).convert('RGB') as img:
       x, y = img.size
 
       affordance = 0
       if x > y:
-        times = MAX / (y + affordance)
+        times = y / (MAX + affordance)
       else:
-        times = MAX / (x + affordance)
+        times = x / (MAX + affordance)
+
+      # print(x, y)
+      # print(times)
+      # print((int(x / times), int(y / times)))
 
       img.thumbnail((int(x / times), int(y / times)), Image.LANCZOS)
-
       img.save(f"{output_folder}/data/{filename}")
 
-  print(f"done with: {input_folder}")
+      # cv2.imwrite(f"{output_folder}/data/{filename}", img)
+
+  print(f"done with: {output_folder}")
 
 DOWNLOAD = False
 if DOWNLOAD:

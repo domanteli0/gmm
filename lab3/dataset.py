@@ -11,8 +11,7 @@ import lab3.util as lu
 import lab3.classes as cs
 import lab3.trans as lt
 from torchvision.tv_tensors import Mask as TVMask, Image as TVImage
-
-DIM = 128
+from lab3.net import DIM
 
 # class FiftyOneDataset(torch.utils.data.Dataset):
 class FiftyOneDataset(tvd.VisionDataset):
@@ -31,7 +30,7 @@ class FiftyOneDataset(tvd.VisionDataset):
     return len(self.data)
 
   def __getitem__(self, idx):
-    image = Image.open(f"data-lab3/{self.split}/data/{self.data[idx]['image']}").convert('RGB')
+    image = Image.open(f"data-lab3-downsized/{self.split}/data/{self.data[idx]['image']}").convert('RGB')
     img_x, img_y = image.size
     masks = self.data[idx]['segmentations']
     masks_as_tensor = mk_zero_mask(img_x, img_y)
@@ -50,7 +49,7 @@ class FiftyOneDataset(tvd.VisionDataset):
 def mk_zero_mask(img_x, img_y):
   return torch.zeros((cs.num_classes, img_y, img_x))
 
-def resize_mask(mask, bbox, target_size=(128, 128)):
+def resize_mask(mask, bbox, target_size=(DIM, DIM)):
   x_start = int(bbox[0] * target_size[1])
   y_start = int(bbox[1] * target_size[0])
   x_end = int((bbox[0] + bbox[2]) * target_size[1])

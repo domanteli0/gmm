@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 CHANNELS = 3
+DIM = 128
 
 def def_conv(in_channels, out_channels):
   return nn.Sequential(
