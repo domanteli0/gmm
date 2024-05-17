@@ -43,7 +43,7 @@ class Net(torch.nn.Module):
 
     # Output Layer
     self.conv8 = torch.nn.Conv2d(32, num_classes, (1, 1))  # Adjust number of output channels
-    self.softmax = torch.nn.Softmax()  # Use Softmax across channel dimension
+    self.softmax = torch.nn.Softmax(dim = 0)  # Use Softmax across channel dimension
     # self.conv8 = torch.nn.Conv2d(16, 1, (1, 1))
     # self.sigmoid8 = torch.nn.Sigmoid()
 

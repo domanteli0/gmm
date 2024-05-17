@@ -10,3 +10,6 @@ start-lab2:
 
 serve-lab3:
     python lab3_service.py
+
+prepare-lab3:
+    python lab3/prepare_data.py

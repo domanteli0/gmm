@@ -20,27 +20,6 @@ def seconds_to_time(seconds):
   return f'{h}h{m}m{s}s'
 
 
-# # Normalizes masks PER singular sample
-# def normalize_masks_in_a_batch(mask_batch: torch.Tensor) -> torch.Tensor:
-#   BATCH_SIZE = t(mask_batch.shape)[0]
-#   CLASS_NO = t(mask_batch.shape)[1]
-#   DIM = t(mask_batch.shape)[2]
-#
-#   vals, _ = mask_batch.max(dim = -1)[0].max(dim = -1)[0].max(dim = -1)
-#   vals = vals ** -1
-#   t2 = vals.repeat_interleave(CLASS_NO * DIM * DIM).view((BATCH_SIZE, CLASS_NO, DIM, DIM))
-#   return t2 * mask_batch
-#
-# # Normalizes masks on a class by class basis
-# def normalize_masks(masks: torch.Tensor) -> torch.Tensor:
-#   CLASS_NO = t(masks.shape)[0]
-#   DIM = t(masks.shape)[1]
-#
-#   vals, _ = masks.max(dim = -1)[0].max(dim = -1)
-#   vals = vals ** -1
-#   t2 = vals.repeat_interleave(DIM * DIM).view((CLASS_NO, DIM, DIM))
-#   return t2 * masks
-
 def pickle_data(dataset, filepath, classes):
   ix = 1
   set = []
@@ -100,7 +79,6 @@ def resize_mask(mask, bounding_box):
   return cv2.resize(mask,
                     dsize=(x2, y2),
                     interpolation=cv2.INTER_NEAREST)
-
 
 def to_target_shape(bbox, target_shape):
   bbox[0] *= target_shape[0]
