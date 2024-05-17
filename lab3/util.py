@@ -71,7 +71,7 @@ def pickle_data(dataset, filepath, classes):
   with open(filepath, 'wb') as file:
     p.dump(set, file)
 
-  print(f"done: {ix}")
+  print(f"done pickling {ix} samples into {filepath}")
 
 
 def resize_mask(mask, bounding_box):

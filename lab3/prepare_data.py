@@ -4,7 +4,7 @@ import fiftyone.zoo as foz
 import classes as cs
 from util import pickle_data
 from PIL import Image
-import shutil
+from distutils.dir_util import copy_tree
 
 def download(split="train", max_samples: int = 2000):
   return foz.load_zoo_dataset(
@@ -33,13 +33,32 @@ def resize_dataset(input_folder, output_folder):
   os.makedirs(output_folder, exist_ok=True)
   MAX = 256
 
-  for ix, filename in enumerate(os.listdir(input_folder)):
-    print(f"Resized: {ix}")
-    # Create the full file path
-    file_path = os.path.join(input_folder, filename)
+  if not os.path.exists(f"{output_folder}"):
+    os.makedirs(f"{output_folder}")
 
-    # Open an image file
-    with Image.open(file_path) as img:
+  if not os.path.exists(f"{output_folder}/data"):
+    os.makedirs(f"{output_folder}/data")
+
+  if not os.path.exists(f"{output_folder}/labels"):
+    os.makedirs(f"{output_folder}/labels")
+
+  if not os.path.exists(f"{output_folder}/metadata"):
+    os.makedirs(f"{output_folder}/metadata")
+
+  copy_tree(f"{input_folder}/labels", f"{output_folder}/labels")
+  copy_tree(f"{input_folder}/metadata", f"{output_folder}/metadata")
+
+  for ix, filename in enumerate(os.listdir(f"{input_folder}/data")):
+    print(f"Resized: {ix}")
+
+    img_path = f"{input_folder}/data/{filename}"
+    print(img_path)
+
+    if not (img_path.endswith(".jpg") or img_path.endswith(".png")):
+      print("SKIPPED")
+      continue
+
+    with Image.open(img_path) as img:
       x, y = img.size
 
       affordance = 0
@@ -50,29 +69,28 @@ def resize_dataset(input_folder, output_folder):
 
       img.thumbnail((int(x / times), int(y / times)), Image.LANCZOS)
 
-      # Save it to the output folder
-      output_path = os.path.join(output_folder, filename)
-      img.save(output_path)
+      img.save(f"{output_folder}/data/{filename}")
 
+  print(f"done with: {input_folder}")
 
 DOWNLOAD = False
 if DOWNLOAD:
-  train_ds = download("train")
   valid_ds = download("validation", max_samples=300)
   test_ds = download("test", max_samples=300)
+  train_ds = download("train")
 
 RESIZE = True
 if RESIZE:
-  resize_dataset('./data-lab3/test/data/', './data-lab3-downsized/test/data/')
-  resize_dataset('./data-lab3/validation/data/', './data-lab3-downsized/validation/data/')
-  resize_dataset('./data-lab3/train/data/', './data-lab3-downsized/train/data/')
+  resize_dataset('./data-lab3/test', './data-lab3-downsized/test')
+  resize_dataset('./data-lab3/validation', './data-lab3-downsized/validation')
+  resize_dataset('./data-lab3/train', './data-lab3-downsized/train')
 
 PICKLE = True
 if PICKLE:
-  train_ds = load("train")
   test_ds = load("test")
   valid_ds = load("validation")
+  train_ds = load("train")
 
-  pickle_data(train_ds, 'data-lab3-dyi/train.pkl', cs.classes)
   pickle_data(test_ds, 'data-lab3-dyi/test.pkl', cs.classes)
   pickle_data(valid_ds, 'data-lab3-dyi/valid.pkl', cs.classes)
+  pickle_data(train_ds, 'data-lab3-dyi/train.pkl', cs.classes)
