@@ -13,3 +13,6 @@ serve-lab3:
 
 prepare-lab3:
     python lab3/prepare_data.py
+
+list-notebooks:
+    venv/bin/jupyter notebook list

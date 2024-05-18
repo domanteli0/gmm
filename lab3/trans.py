@@ -15,13 +15,13 @@ train_trans = v2.Compose([
   v2.RandomGrayscale(p=0.1),
   v2.RandomResizedCrop(size = (DIM, DIM), scale = (0.75, 0.75)),
   to_tensor,
-  v2.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+  # v2.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
 validation_trans = v2.Compose([
   v2.Resize((DIM, DIM)),
   to_tensor,
-  v2.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+  # v2.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
 test_trans = validation_trans
