@@ -1,15 +1,13 @@
 import os
 
-import cv2
 import fiftyone.utils.openimages as fouo
 import fiftyone.zoo as foz
 import classes as cs
 from util import pickle_data
 from PIL import Image
 from distutils.dir_util import copy_tree
-import numpy as np
 
-def download(split="train", max_samples: int = 2000):
+def download(split="train", max_samples: int = 3000):
   return foz.load_zoo_dataset(
     "open-images-v6",
     split=split,
@@ -87,7 +85,7 @@ if DOWNLOAD:
   test_ds = download("test", max_samples=300)
   train_ds = download("train")
 
-RESIZE = True
+RESIZE = False
 if RESIZE:
   resize_dataset('./data-lab3/test', './data-lab3-downsized/test')
   resize_dataset('./data-lab3/validation', './data-lab3-downsized/validation')
@@ -98,6 +96,9 @@ if PICKLE:
   test_ds = load("test")
   valid_ds = load("validation")
   train_ds = load("train")
+
+  if not os.path.exists(f"data-lab3-dyi"):
+    os.makedirs(f"data-lab3-dyi")
 
   pickle_data(test_ds, 'data-lab3-dyi/test.pkl', cs.classes)
   pickle_data(valid_ds, 'data-lab3-dyi/valid.pkl', cs.classes)

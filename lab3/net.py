@@ -3,7 +3,7 @@ from torch import nn
 from torch import cat as c
 
 CHANNELS = 3
-DIM = 128
+DIM = 224
 
 def def_conv(in_channels, out_channels):
   return nn.Sequential(
@@ -67,9 +67,9 @@ class Net(torch.nn.Module):
 
     c2 = self.conv2(d1)
     p2 = self.pool2(c2)
-    d2 = self.drop2(p2)
+    # d2 = self.drop2(p2)
 
-    c3 = self.conv3(d2)
+    c3 = self.conv3(p2)
     p3 = self.pool3(c3)
     # d3 = self.drop3(p3)
 

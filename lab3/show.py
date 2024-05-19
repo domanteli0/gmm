@@ -73,3 +73,12 @@ def display_img_with_masks_nouveau(img, masks, classes):
   plt.show()
   plt.imshow(img.permute(1, 2, 0).numpy())
 
+
+def display_masks_nouveau(masks, classes):
+  fig, axes = plt.subplots(1, len(classes), figsize=(15, 15))
+  for i in range(len(classes)):
+    axes[i].imshow(masks[i], cmap='gray')
+    axes[i].set_title(classes[i])
+    axes[i].axis('off')
+  plt.show()
+
