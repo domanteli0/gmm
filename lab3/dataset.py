@@ -1,52 +1,55 @@
 from typing import Iterable, cast
-from fiftyone.core.labels import Detections
-from fiftyone.core.labels import Detection
-import fiftyone.core.dataset as fod
-import fiftyone.core.sample as fos
-import fiftyone.utils.openimages as fouo
 import torch
 import torchvision.transforms.v2 as trans
-import numpy as np
 from PIL import Image
 import cv2
+import torch as np
+import matplotlib.pyplot as plt
+import torchvision.datasets as tvd
 
 import lab3.util as lu
 import lab3.classes as cs
 import lab3.trans as lt
+from torchvision.tv_tensors import Mask as TVMask, Image as TVImage
+from lab3.net import DIM
 
-DIM = 128
+# class FiftyOneDataset(torch.utils.data.Dataset):
+class FiftyOneDataset(tvd.VisionDataset):
+  def __init__(self, filepath, transforms, split = 'train'):
+    # super(FiftyOneDataset).__init__()
 
-class FiftyOneDataset(torch.utils.data.Dataset):
-  def __init__(self, importer: fouo.OpenImagesV6DatasetImporter, transforms):
+    data = lu.unpickle_data(filepath)
+
     self.transform = transforms
-    self.img_paths = [filepath for filepath, _, s in importer if s is not None]
-    self.masks = [aggregate_detections(segs) for _, _, segs in importer if segs is not None]
+    # self.img_paths = [s['image'] for s in set]
+    # self.masks = [s['segmentations'] for s in set]
+    self.data = data
+    self.split = split
 
   def __len__(self):
-    return len(self.img_paths)
+    return len(self.data)
 
   def __getitem__(self, idx):
-    img = self.img_paths[idx]
-    mask = self.masks[idx]
+    image = Image.open(f"data-lab3-downsized/{self.split}/data/{self.data[idx]['image']}").convert('RGB')
+    img_x, img_y = image.size
+    masks = self.data[idx]['segmentations']
+    masks_as_tensor = mk_zero_mask(img_x, img_y)
+    for pair in masks:
+      label = pair['label']
+      mask = pair['mask']
+      masks_as_tensor[cs.classes_dict[label]] = torch.tensor(mask)
 
-    img = Image.open(img).convert('RGB')
+    image = TVImage(image)
+    masks = TVMask(masks_as_tensor)
 
-    # print(f"{mask.shape}")
-    # mask = lt.to_tensor(mask)
-    mask = trans.functional.to_tensor(mask)
+    image, masks = self.transform(image, masks)
 
-    mask = (mask != .0).float()
+    return image, masks
 
-    # print(f"SHAPE: {mask.shape}")
-    # print(f"TYPE:  {mask.dtype}")
-    # print(f"MAX:   {mask.max()}")
+def mk_zero_mask(img_x, img_y):
+  return torch.zeros((cs.num_classes, img_y, img_x))
 
-    img, mask = self.transform(img, mask)
-
-    return img, mask
-
-
-def resize_mask(mask, bbox, target_size=(128, 128)):
+def resize_mask(mask, bbox, target_size=(DIM, DIM)):
   x_start = int(bbox[0] * target_size[1])
   y_start = int(bbox[1] * target_size[0])
   x_end = int((bbox[0] + bbox[2]) * target_size[1])
@@ -54,28 +57,28 @@ def resize_mask(mask, bbox, target_size=(128, 128)):
 
   return cv2.resize(mask, (x_end - x_start, y_end - y_start), interpolation=cv2.INTER_LINEAR), x_start, y_start
 
-
-def aggregate_detections(segmentations: Detections, target_size: tuple[int, int] = (128, 128)):
-  aggr_mask = np.zeros((*target_size, cs.num_classes), dtype=np.uint8)
-  aggr_mask[..., cs.classes_dict["Background"]] = 1
-
-  seg: Detection
-  for seg in segmentations.detections:
-    # print(f"SEG: {seg}")
-
-    if seg.label not in cs.classes_dict.keys():
-      continue
-
-    label = seg.label
-    mask = seg.mask.astype(np.uint8)
-    bbox = seg.bounding_box
-
-    resized_mask, x_start, y_start = resize_mask(mask, bbox)
-
-    for k in range(resized_mask.shape[0]):
-      for j in range(resized_mask.shape[1]):
-        if resized_mask[k, j]:
-          aggr_mask[y_start + k, x_start + j, :] = 0
-          aggr_mask[y_start + k, x_start + j, cs.classes_dict[label]] = 1
-
-  return aggr_mask
+#
+# def aggregate_detections(segmentations: Detections, target_size: tuple[int, int] = (128, 128)):
+#   aggr_mask = np.zeros((*target_size, cs.num_classes), dtype=np.uint8)
+#   aggr_mask[..., cs.classes_dict["Background"]] = 1
+#
+#   seg: Detection
+#   for seg in segmentations.detections:
+#     print(f"SEG: {seg}")
+#
+#     if seg.label not in cs.classes_dict.keys():
+#       continue
+#
+#     label = seg.label
+#     mask = seg.mask.astype(np.uint8)
+#     bbox = seg.bounding_box
+#
+#     resized_mask, x_start, y_start = resize_mask(mask, bbox)
+#
+#     for k in range(resized_mask.shape[0]):
+#       for j in range(resized_mask.shape[1]):
+#         if resized_mask[k, j]:
+#           aggr_mask[y_start + k, x_start + j, :] = 0
+#           aggr_mask[y_start + k, x_start + j, cs.classes_dict[label]] = 1
+#
+#   return aggr_mask

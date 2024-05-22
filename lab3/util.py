@@ -1,5 +1,12 @@
+from typing import List
+
 import torch
-from torch import tensor as t
+import numpy as np
+import pickle as p
+import itertools
+from PIL import Image
+import cv2
+
 
 def seconds_to_time(seconds):
   s = int(seconds) % 60
@@ -12,75 +19,167 @@ def seconds_to_time(seconds):
     return f'{m}m{s}s'
   return f'{h}h{m}m{s}s'
 
-# # Normalizes masks PER singular sample
-# def normalize_masks_in_a_batch(mask_batch: torch.Tensor) -> torch.Tensor:
-#   BATCH_SIZE = t(mask_batch.shape)[0]
-#   CLASS_NO = t(mask_batch.shape)[1]
-#   DIM = t(mask_batch.shape)[2]
-#
-#   vals, _ = mask_batch.max(dim = -1)[0].max(dim = -1)[0].max(dim = -1)
-#   vals = vals ** -1
-#   t2 = vals.repeat_interleave(CLASS_NO * DIM * DIM).view((BATCH_SIZE, CLASS_NO, DIM, DIM))
-#   return t2 * mask_batch
-#
-# # Normalizes masks on a class by class basis
-# def normalize_masks(masks: torch.Tensor) -> torch.Tensor:
-#   CLASS_NO = t(masks.shape)[0]
-#   DIM = t(masks.shape)[1]
-#
-#   vals, _ = masks.max(dim = -1)[0].max(dim = -1)
-#   vals = vals ** -1
-#   t2 = vals.repeat_interleave(DIM * DIM).view((CLASS_NO, DIM, DIM))
-#   return t2 * masks
 
-import matplotlib.pyplot as plt
-import torch
-from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
-from torchvision import tv_tensors
-from torchvision.transforms.v2 import functional as F
+def pickle_data(dataset, filepath, classes):
+  ix = 1
+  set = []
+  for i, q, seg in dataset:
+    if not hasattr(seg, 'detections'):
+      continue
+    ix += 1
+
+    img = i.split('/')[-1]
+    segmentations = {
+      "image": img,
+      "segmentations": []
+    }
+
+    img = Image.open(i).convert('RGB')
+    img_x, img_y = img.size
+
+    # Sorting the data by label
+    seg.detections.sort(key=lambda x: x.label)
+    for label, segs in itertools.groupby(seg.detections, key=lambda d: d.label):
+      segs = list(segs)
+      if label not in classes:
+        continue
+
+      masks = [s.mask.astype(int) for s in segs]
+      bboxes = [to_target_shape(s.bounding_box, img.size) for s in segs]
+
+      # https://stackoverflow.com/a/64617349
+      # mask = np.zeros((height, width))
+      # TODO: rename
+      zero_mask = np.zeros((img_y, img_x), dtype=int)
+      for mask, bbox in zip(masks, bboxes):
+        mask = resize_mask(mask, bbox)
+        x1, y1, x2, y2 = bbox
+        x2 += x1
+        y2 += y1
+
+        zero_mask[y1:y2, x1:x2] = mask
+
+      if zero_mask.max() != 0:
+        seg = {
+          "label": label,
+          "mask": zero_mask
+        }
+        segmentations['segmentations'].append(seg)
+
+    set.append(segmentations)
+
+  with open(filepath, 'wb') as file:
+    p.dump(set, file)
+
+  print(f"done pickling {ix} samples into {filepath}")
 
 
-def plot(imgs, row_title=None, **imshow_kwargs):
-    if not isinstance(imgs[0], list):
-        # Make a 2d grid even if there's just 1 row
-        imgs = [imgs]
+def resize_mask(mask, bounding_box):
+  _, _, x2, y2 = bounding_box
+  return cv2.resize(mask,
+                    dsize=(x2, y2),
+                    interpolation=cv2.INTER_NEAREST)
 
-    num_rows = len(imgs)
-    num_cols = len(imgs[0])
-    _, axs = plt.subplots(nrows=num_rows, ncols=num_cols, squeeze=False)
-    for row_idx, row in enumerate(imgs):
-        for col_idx, img in enumerate(row):
-            boxes = None
-            masks = None
-            if isinstance(img, tuple):
-                img, target = img
-                if isinstance(target, dict):
-                    boxes = target.get("boxes")
-                    masks = target.get("masks")
-                elif isinstance(target, tv_tensors.BoundingBoxes):
-                    boxes = target
-                else:
-                    raise ValueError(f"Unexpected target type: {type(target)}")
-            img = F.to_image(img)
-            if img.dtype.is_floating_point and img.min() < 0:
-                # Poor man's re-normalization for the colors to be OK-ish. This
-                # is useful for images coming out of Normalize()
-                img -= img.min()
-                img /= img.max()
+def to_target_shape(bbox, target_shape):
+  bbox[0] *= target_shape[0]
+  bbox[1] *= target_shape[1]
+  bbox[2] *= target_shape[0]
+  bbox[3] *= target_shape[1]
 
-            img = F.to_dtype(img, torch.uint8, scale=True)
-            if boxes is not None:
-                img = draw_bounding_boxes(img, boxes, colors="yellow", width=3)
-            if masks is not None:
-                img = draw_segmentation_masks(img, masks.to(torch.bool), colors=["green"] * masks.shape[0], alpha=.65)
+  return int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
 
-            ax = axs[row_idx, col_idx]
-            ax.imshow(img.permute(1, 2, 0).numpy(), **imshow_kwargs)
-            ax.set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
-    if row_title is not None:
-        for row_idx in range(num_rows):
-            axs[row_idx, 0].set(ylabel=row_title[row_idx])
+def unpickle_data(filepath):
+  with open(filepath, 'rb') as file:
+    return p.load(file)
 
-    plt.tight_layout()
 
+def bix_bbox_from_smol_bboxes(bboxes):
+  """
+  arg and return bbox format:
+
+  (x1, y1, x2, y2), where
+
+  x1, y1 - top-right corner
+
+  x2 - distance from x1 to the right
+
+  y2 - distance from y1 to the bottom
+  """
+  min_x, min_y = 1., 1.
+  max_x, max_y = 0., 0.
+
+  for bbox in bboxes:
+    x1, y1, x2, y2 = bbox
+    x2 = x1 + x2
+    y2 = y1 + y2
+
+    min_x = min(min_x, x1)
+    min_y = min(min_y, y1)
+    max_x = max(max_x, x2)
+    max_y = max(max_y, y2)
+
+  return min_x, min_y, max_x - min_x, max_y - min_y
+
+
+# masks = [ np.array([[1,1], [1,1]]), np.array([[0,0], [0,1]]) ]
+# bboxes = [(1,1,2,2), (2,2,2,2)]
+
+def big_mask_from_many_smol_masks(masks, start_pos):
+  """
+  arg and return bbox format:
+
+  (x1, y1, x2, y2), where
+
+  x1, y1 - top-right corner
+
+  x2 - distance from x1 to the right
+
+  y2 - distance from y1 to the bottom
+  """
+  new_bbox = bix_bbox_from_smol_bboxes(bboxes)
+  mask = zero_mask_from_smol_masks(masks)
+  # mask = np.zeros((max_y + 1, max_y + 1))
+  print(f"MASK SHAPE: {mask.shape}")
+
+  for small_mask, bbox in zip(masks, bboxes):
+    x1, y1, _, _ = bbox
+    x1 = int(x1)
+    y1 = int(y1)
+    x2, y2 = x1 + small_mask.shape[1], y1 + small_mask.shape[0]
+    print(f"small_mask shape {small_mask.shape}")
+    print(f"(,,,,) {(x1, y1, x2, y2)}")
+    mask[y1:y2, x1:x2] += small_mask
+
+  return mask, new_bbox
+
+
+def zero_mask_from_smol_masks(masks):
+  x, y = 0, 0
+  for m in masks:
+    x = max(m.shape[0], x)
+    y = max(m.shape[1], y)
+
+  return np.zeros((x, y))
+
+
+def pad_mask(mask_, bbox, img_size):
+  padded = np.zeros((img_size[1], img_size[0]))
+
+  x1, y1, x2, y2 = bbox
+
+  padded[y1:y2, x1:x2] += mask_
+  padded = ((padded >= 1) * 255.0).astype(int)
+
+
+def unzipListIntoList(xs: List):
+  return list(zip(*xs))
+
+def process_for_cross_entroppy(masks):
+  """
+  WARNING: NOT MEANT FOR PREDICTIONS OR IMAGES WITH MULTIPLE MASKS [TODO: FIX THIS]
+  """
+  index = masks.max(dim = -1)[0].max(dim = -1)[0].argmax()
+  print(index)
+  index
+  return masks[index] * index

@@ -1,10 +1,11 @@
 def init():
   classes_no_background = [
     'Apple',
-    'Cucumber',
-    'Mushroom',
-    'Pumpkin',
-    'Watermelon',
+    # 'Axe', only 115 available
+    'Cat',
+    'Teapot',
+    'Spoon',
+    'Whiteboard',
   ]
 
   classes = classes_no_background.copy()
