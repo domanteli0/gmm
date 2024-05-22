@@ -1,5 +1,9 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
+
 from lab3.net import DIM
 
 def display_img_with_masks(ax, img, masks):
@@ -81,4 +85,14 @@ def display_masks_nouveau(masks, classes):
     axes[i].set_title(classes[i])
     axes[i].axis('off')
   plt.show()
+
+def save_masks_nouveau(masks, classes: List[str], output: str):
+  fig = Figure()
+  # fig, axes = fig.subplots(1, len(classes), figsize=(15, 15))
+  axes = fig.subplots(nrows = 1, ncols= len(classes))
+  for i in range(len(classes)):
+    axes[i].imshow(masks[i], cmap='gray')
+    axes[i].set_title(classes[i])
+    axes[i].axis('off')
+  fig.savefig(output)
 

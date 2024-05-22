@@ -7,16 +7,18 @@ from util import pickle_data
 from PIL import Image
 from distutils.dir_util import copy_tree
 
-def download(split="train", max_samples: int = 3000):
-  return foz.load_zoo_dataset(
-    "open-images-v6",
-    split=split,
-    label_types=["segmentations", "detections"],
-    classes=cs.classes_no_background,
-    max_samples=max_samples,
-    dataset_dir="data-lab3",
-    dataset_name=f"open-images-v6-{split}"
-  )
+def download(split="train", max_samples: int = 500):
+  for label in cs.classes_no_background:
+    print(f"Downloading: '{label}' class")
+    foz.load_zoo_dataset(
+      "open-images-v6",
+      split=split,
+      label_types=["segmentations", "detections"],
+      classes = [label],
+      max_samples=max_samples,
+      dataset_dir="data-lab3",
+      dataset_name=f"open-images-v6-{split}"
+    )
 
 
 def load(split="train"):
@@ -79,13 +81,13 @@ def resize_dataset(input_folder, output_folder):
 
   print(f"done with: {output_folder}")
 
-DOWNLOAD = False
+DOWNLOAD = True
 if DOWNLOAD:
   valid_ds = download("validation", max_samples=300)
   test_ds = download("test", max_samples=300)
   train_ds = download("train")
 
-RESIZE = False
+RESIZE = True
 if RESIZE:
   resize_dataset('./data-lab3/test', './data-lab3-downsized/test')
   resize_dataset('./data-lab3/validation', './data-lab3-downsized/validation')

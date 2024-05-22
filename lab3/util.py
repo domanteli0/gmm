@@ -174,3 +174,12 @@ def pad_mask(mask_, bbox, img_size):
 
 def unzipListIntoList(xs: List):
   return list(zip(*xs))
+
+def process_for_cross_entroppy(masks):
+  """
+  WARNING: NOT MEANT FOR PREDICTIONS OR IMAGES WITH MULTIPLE MASKS [TODO: FIX THIS]
+  """
+  index = masks.max(dim = -1)[0].max(dim = -1)[0].argmax()
+  print(index)
+  index
+  return masks[index] * index
