@@ -183,3 +183,6 @@ def process_for_cross_entroppy(masks):
   print(index)
   index
   return masks[index] * index
+
+def unzipListIntoList(xs: List):
+  return list(zip(*xs))
